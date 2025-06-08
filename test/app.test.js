@@ -2,27 +2,28 @@ const fs = require("fs");
 const path = require("path");
 const { JSDOM } = require("jsdom");
 
-let dom;
-let document;
-
 describe("Handling Events with JavaScript", () => {
-  let changeColorButton;
-  let resetColorButton;
-  let textInput;
-  let keyPressDisplay;
-  let textInputDisplay;
+  let dom, document;
+  let changeColorButton,
+    resetColorButton,
+    textInput,
+    keyPressDisplay,
+    textInputDisplay;
 
   beforeAll(() => {
     const html = fs.readFileSync(
       path.resolve(__dirname, "../index.html"),
       "utf8",
     );
-    dom = new JSDOM(html);
+    dom = new JSDOM(html, { runScripts: "dangerously", resources: "usable" });
     document = dom.window.document;
 
-    // Make globals available (optional but useful)
-    global.document = document;
+    // Make globals available for event constructors etc.
     global.window = dom.window;
+    global.document = document;
+
+    // Require your app code to attach event listeners
+    require("../app.js");
 
     changeColorButton = document.getElementById("changeColorButton");
     resetColorButton = document.getElementById("resetColorButton");
@@ -44,7 +45,7 @@ describe("Handling Events with JavaScript", () => {
   });
 
   it("should display the key pressed by the user", () => {
-    const event = new dom.window.KeyboardEvent("keydown", { key: "A" });
+    const event = new window.KeyboardEvent("keydown", { key: "A" });
     document.dispatchEvent(event);
 
     expect(keyPressDisplay.textContent).toContain("A");
@@ -52,7 +53,7 @@ describe("Handling Events with JavaScript", () => {
 
   it("should display user input in real-time", () => {
     textInput.value = "Hello";
-    const event = new dom.window.Event("input");
+    const event = new window.Event("input");
     textInput.dispatchEvent(event);
 
     expect(textInputDisplay.textContent).toContain("Hello");
